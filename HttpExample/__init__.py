@@ -83,7 +83,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
         keyvault_client.set_secret('dummy', 'dummy')
-        keyvault_client.begin_delete_secret('dummy')
 
     except (NameError, ValueError, ServiceRequestError, ResourceNotFoundError):
         return func.HttpResponse(f"KeyVault not found or not defined \n\n"
