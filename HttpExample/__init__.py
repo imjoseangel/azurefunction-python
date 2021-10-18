@@ -16,14 +16,6 @@ def _format(content):
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
-    syntax = f"Syntax:\n"
-    f"-------\n"
-    f"?cosmosdb=<cosmosdbname>\n"
-    f"&resourcegroup=<resourcegroup>\n"
-    f"&subscriptionid=<subscriptionid>\n"
-    f"&cosmosdbkey=[ primary | secondary ]\n"
-    f"&keyvaultname=<keyvaultname>"
-
     SUBSCRIPTION_ID = req.params.get('subscriptionid')
 
     if not SUBSCRIPTION_ID or SUBSCRIPTION_ID is None:
@@ -41,7 +33,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
     except ValueError:
         return func.HttpResponse(f"Subscription not found or not defined \n\n"
-                                 f"{syntax}",
+                                 f"Syntax:\n"
+                                 f"-------\n"
+                                 f"?cosmosdb=<cosmosdbname>\n"
+                                 f"&resourcegroup=<resourcegroup>\n"
+                                 f"&subscriptionid=<subscriptionid>\n"
+                                 f"&cosmosdbkey=[ primary | secondary ]\n"
+                                 f"&keyvaultname=<keyvaultname>",
                                  status_code=404)
 
     COSMOSDBKEY = req.params.get('cosmosdbkey')
@@ -57,7 +55,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     if COSMOSDBKEY not in COSMOSDBVALUES:
         return func.HttpResponse(f"CosmosDB Key not found or not defined \n\n"
-                                 f"{syntax}",
+                                 f"Syntax:\n"
+                                 f"-------\n"
+                                 f"?cosmosdb=<cosmosdbname>\n"
+                                 f"&resourcegroup=<resourcegroup>\n"
+                                 f"&subscriptionid=<subscriptionid>\n"
+                                 f"&cosmosdbkey=[ primary | secondary ]\n"
+                                 f"&keyvaultname=<keyvaultname>",
                                  status_code=404)
 
     KEYVAULT_NAME = req.params.get('keyvaultname')
@@ -73,8 +77,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         KVURI = f"https://{KEYVAULT_NAME}.vault.azure.net"
     except NameError:
-        return func.HttpResponse(f"KeyVault name not found or not defined \n\n"
-                                 f"{syntax}",
+        return func.HttpResponse(f"KeyVault not found or not defined \n\n"
+                                 f"Syntax:\n"
+                                 f"-------\n"
+                                 f"?cosmosdb=<cosmosdbname>\n"
+                                 f"&resourcegroup=<resourcegroup>\n"
+                                 f"&subscriptionid=<subscriptionid>\n"
+                                 f"&cosmosdbkey=[ primary | secondary ]\n"
+                                 f"&keyvaultname=<keyvaultname>",
                                  status_code=404)
 
     try:
@@ -84,8 +94,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     except ValueError:
-        return func.HttpResponse(f"Subscription not found or not defined \n\n"
-                                 f"{syntax}",
+        return func.HttpResponse(f"Keyvault not found or not defined \n\n"
+                                 f"Syntax:\n"
+                                 f"-------\n"
+                                 f"?cosmosdb=<cosmosdbname>\n"
+                                 f"&resourcegroup=<resourcegroup>\n"
+                                 f"&subscriptionid=<subscriptionid>\n"
+                                 f"&cosmosdbkey=[ primary | secondary ]\n"
+                                 f"&keyvaultname=<keyvaultname>",
                                  status_code=404)
 
     DATABASE_ACCOUNT = req.params.get('cosmosdb')
@@ -124,6 +140,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     else:
         return func.HttpResponse(
             f"Missing CosmosDB and/or Resource Group Name \n\n"
-            f"{syntax}",
+            f"Syntax:\n"
+            f"-------\n"
+            f"?cosmosdb=<cosmosdbname>\n"
+            f"&resourcegroup=<resourcegroup>\n"
+            f"&subscriptionid=<subscriptionid>\n"
+            f"&cosmosdbkey=[ primary | secondary ]\n"
+            f"&keyvaultname=<keyvaultname>",
             status_code=200
         )
