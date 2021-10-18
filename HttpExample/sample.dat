@@ -1,0 +1,5 @@
+{
+    "cosmosdb": "cosmosdbname",
+    "group": "groupname",
+    "subscriptionid": "subscriptionid"
+}
