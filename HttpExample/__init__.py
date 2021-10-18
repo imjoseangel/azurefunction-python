@@ -76,25 +76,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         KVURI = f"https://{KEYVAULT_NAME}.vault.azure.net"
-    except NameError:
-        return func.HttpResponse(f"KeyVault not found or not defined \n\n"
-                                 f"Syntax:\n"
-                                 f"-------\n"
-                                 f"?cosmosdb=<cosmosdbname>\n"
-                                 f"&resourcegroup=<resourcegroup>\n"
-                                 f"&subscriptionid=<subscriptionid>\n"
-                                 f"&cosmosdbkey=[ primary | secondary ]\n"
-                                 f"&keyvaultname=<keyvaultname>",
-                                 status_code=404)
 
-    try:
         keyvault_client = SecretClient(
             credential=DefaultAzureCredential(),
             vault_url=KVURI
         )
-
-    except ValueError:
-        return func.HttpResponse(f"Keyvault not found or not defined \n\n"
+    except (NameError, ValueError):
+        return func.HttpResponse(f"KeyVault not found or not defined \n\n"
                                  f"Syntax:\n"
                                  f"-------\n"
                                  f"?cosmosdb=<cosmosdbname>\n"
