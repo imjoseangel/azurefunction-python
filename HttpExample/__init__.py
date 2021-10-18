@@ -18,12 +18,20 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
     syntax = (f"Syntax:\n"
-              f"-------\n"
-              f"?subscriptionid=<subscriptionid>\n"
+              f"-------\n\n"
+              f"?cosmosdb=<cosmosdbname>\n"
+              f"&resourcegroup=<resourcegroup>\n"
+              f"&subscriptionid=<subscriptionid>\n"
               f"&cosmosdbkey=[ primary | secondary ]\n"
-              f"&keyvaultname=<keyvaultname>\n"
-              f"&cosmosdb=<cosmosdbname>\n"
-              f"&resourcegroup=<resourcegroup>\n")
+              f"&keyvaultname=<keyvaultname>\n\n"
+              f"OR with BODY POST:\n\n"
+              f'{{\n'
+              f'"cosmosdb": "<cosmosdbname>",\n'
+              f'"resourcegroup": "<resourcegroup>",\n'
+              f'"subscriptionid": "<subscriptionid>",\n'
+              f'"cosmosdbkey": "<primary | secondary>",\n'
+              f'"keyvaultname": "<keyvaultname>"\n'
+              f'}}')
 
     SUBSCRIPTION_ID = req.params.get('subscriptionid')
 
