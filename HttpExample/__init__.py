@@ -16,6 +16,14 @@ def _format(content):
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
+    syntax = f"Syntax:\n"
+    f"-------\n"
+    f"?cosmosdb=<cosmosdbname>\n"
+    f"&resourcegroup=<resourcegroup>\n"
+    f"&subscriptionid=<subscriptionid>\n"
+    f"&cosmosdbkey=[ primary | secondary ]\n"
+    f"&keyvaultname=<keyvaultname>"
+
     SUBSCRIPTION_ID = req.params.get('subscriptionid')
 
     if not SUBSCRIPTION_ID or SUBSCRIPTION_ID is None:
@@ -33,12 +41,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
     except ValueError:
         return func.HttpResponse(f"Subscription not found or not defined \n\n"
-                                 f"Syntax:\n"
-                                 f"-------\n"
-                                 f"?cosmosdb=<cosmosdbname>\n"
-                                 f"&resourcegroup=<resourcegroup>\n"
-                                 f"&subscriptionid=<subscriptionid>\n"
-                                 f"&cosmosdbkey=[ primary | secondary ]",
+                                 f"{syntax}",
                                  status_code=404)
 
     COSMOSDBKEY = req.params.get('cosmosdbkey')
@@ -54,12 +57,35 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     if COSMOSDBKEY not in COSMOSDBVALUES:
         return func.HttpResponse(f"CosmosDB Key not found or not defined \n\n"
-                                 f"Syntax:\n"
-                                 f"-------\n"
-                                 f"?cosmosdb=<cosmosdbname>\n"
-                                 f"&resourcegroup=<resourcegroup>\n"
-                                 f"&subscriptionid=<subscriptionid>\n"
-                                 f"&cosmosdbkey=[ primary | secondary ]",
+                                 f"{syntax}",
+                                 status_code=404)
+
+    KEYVAULT_NAME = req.params.get('keyvaultname')
+
+    if not KEYVAULT_NAME or KEYVAULT_NAME is None:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            KEYVAULT_NAME = req_body.get('keyvaultname')
+
+    try:
+        KVURI = f"https://{KEYVAULT_NAME}.vault.azure.net"
+    except NameError:
+        return func.HttpResponse(f"KeyVault name not found or not defined \n\n"
+                                 f"{syntax}",
+                                 status_code=404)
+
+    try:
+        keyvault_client = SecretClient(
+            credential=DefaultAzureCredential(),
+            vault_url=KVURI
+        )
+
+    except ValueError:
+        return func.HttpResponse(f"Subscription not found or not defined \n\n"
+                                 f"{syntax}",
                                  status_code=404)
 
     DATABASE_ACCOUNT = req.params.get('cosmosdb')
@@ -98,11 +124,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     else:
         return func.HttpResponse(
             f"Missing CosmosDB and/or Resource Group Name \n\n"
-            f"Syntax:\n"
-            f"-------\n"
-            f"?cosmosdb=<cosmosdbname>\n"
-            f"&resourcegroup=<resourcegroup>\n"
-            f"&subscriptionid=<subscriptionid>\n"
-            f"&cosmosdbkey=[ primary | secondary ]",
+            f"{syntax}",
             status_code=200
         )
