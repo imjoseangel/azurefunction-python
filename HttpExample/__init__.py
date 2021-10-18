@@ -21,9 +21,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
               f"-------\n"
               f"?subscriptionid=<subscriptionid>\n"
               f"&cosmosdbkey=[ primary | secondary ]\n"
-              f"&resourcegroup=<resourcegroup>\n"
+              f"&keyvaultname=<keyvaultname>\n"
               f"&cosmosdb=<cosmosdbname>\n"
-              f"&keyvaultname=<keyvaultname>\n")
+              f"&resourcegroup=<resourcegroup>\n")
 
     SUBSCRIPTION_ID = req.params.get('subscriptionid')
 
