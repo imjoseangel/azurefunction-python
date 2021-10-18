@@ -20,9 +20,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     syntax = (f"Syntax:\n"
               f"-------\n"
               f"?subscriptionid=<subscriptionid>\n"
+              f"&cosmosdbkey=[ primary | secondary ]\n"
               f"&resourcegroup=<resourcegroup>\n"
               f"&cosmosdb=<cosmosdbname>\n"
-              f"&cosmosdbkey=[ primary | secondary ]\n"
               f"&keyvaultname=<keyvaultname>\n")
 
     SUBSCRIPTION_ID = req.params.get('subscriptionid')
@@ -58,8 +58,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             COSMOSDBKEY = req_body.get('cosmosdbkey')
 
     if COSMOSDBKEY not in COSMOSDBVALUES:
-        logging.error(f"CosmosDB Key not found or not defined")
-        return func.HttpResponse(f"CosmosDB Key not found or not defined \n\n"
+        logging.error(f"CosmosDB key not found or not defined")
+        return func.HttpResponse(f"CosmosDB key not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
 
@@ -84,8 +84,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         keyvault_client.set_secret('dummy', 'dummy')
 
     except (NameError, ValueError, ServiceRequestError, ResourceNotFoundError):
-        logging.error(f"KeyVault not found or not defined")
-        return func.HttpResponse(f"KeyVault not found or not defined \n\n"
+        logging.error(f"KeyVault name not found or not defined")
+        return func.HttpResponse(f"KeyVault name not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
 
