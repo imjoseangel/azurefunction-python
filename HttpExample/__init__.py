@@ -3,7 +3,7 @@ import json
 
 import azure.functions as func
 
-from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
+from azure.core.exceptions import ResourceNotFoundError, HttpResponseError, ServiceRequestError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.mgmt.cosmosdb import CosmosDBManagementClient
@@ -39,7 +39,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"&resourcegroup=<resourcegroup>\n"
                                  f"&subscriptionid=<subscriptionid>\n"
                                  f"&cosmosdbkey=[ primary | secondary ]\n"
-                                 f"&keyvaultname=<keyvaultname>",
+                                 f"&keyvaultname=<keyvaultname>\n",
                                  status_code=404)
 
     COSMOSDBKEY = req.params.get('cosmosdbkey')
@@ -61,7 +61,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"&resourcegroup=<resourcegroup>\n"
                                  f"&subscriptionid=<subscriptionid>\n"
                                  f"&cosmosdbkey=[ primary | secondary ]\n"
-                                 f"&keyvaultname=<keyvaultname>",
+                                 f"&keyvaultname=<keyvaultname>\n",
                                  status_code=404)
 
     KEYVAULT_NAME = req.params.get('keyvaultname')
@@ -81,7 +81,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             credential=DefaultAzureCredential(),
             vault_url=KVURI
         )
-    except (NameError, ValueError):
+
+        # _ = next(keyvault_client.list_deleted_secrets())
+
+    except (NameError, ValueError, ServiceRequestError):
         return func.HttpResponse(f"KeyVault not found or not defined \n\n"
                                  f"Syntax:\n"
                                  f"-------\n"
@@ -89,7 +92,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"&resourcegroup=<resourcegroup>\n"
                                  f"&subscriptionid=<subscriptionid>\n"
                                  f"&cosmosdbkey=[ primary | secondary ]\n"
-                                 f"&keyvaultname=<keyvaultname>",
+                                 f"&keyvaultname=<keyvaultname>\n",
                                  status_code=404)
 
     DATABASE_ACCOUNT = req.params.get('cosmosdb')
@@ -117,6 +120,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             regenerate_keys.wait()
 
             if regenerate_keys.status() == "Succeeded":
+
+                database_account_keys = cosmosdb_client.database_accounts.list_keys(
+                    GROUP_NAME,
+                    DATABASE_ACCOUNT
+                )
+
+                keyvault_client.set_secret(
+                    f"{DATABASE_ACCOUNT}-{COSMOSDBKEY}",
+                    eval(f"database_account_keys.{COSMOSDBKEY}_master_key")
+                )
+
                 return func.HttpResponse(f"{COSMOSDBKEY.title()} Key for Database account {DATABASE_ACCOUNT} regenerated.", status_code=200)
 
         except ResourceNotFoundError:
@@ -134,6 +148,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             f"&resourcegroup=<resourcegroup>\n"
             f"&subscriptionid=<subscriptionid>\n"
             f"&cosmosdbkey=[ primary | secondary ]\n"
-            f"&keyvaultname=<keyvaultname>",
+            f"&keyvaultname=<keyvaultname>\n",
             status_code=200
         )
