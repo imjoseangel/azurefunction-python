@@ -58,8 +58,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             COSMOSDBKEY = req_body.get('cosmosdbkey')
 
     if COSMOSDBKEY not in COSMOSDBVALUES:
-        logging.error(f"CosmosDB not found or not defined")
-        return func.HttpResponse(f"CosmosDB not found or not defined \n\n"
+        logging.error(f"CosmosDB Key not found or not defined")
+        return func.HttpResponse(f"CosmosDB Key not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
 
