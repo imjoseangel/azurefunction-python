@@ -14,7 +14,16 @@ def _format(content):
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
+
     logging.info('Python HTTP trigger function processed a request.')
+
+    syntax = (f"Syntax:\n"
+              f"-------\n"
+              f"?subscriptionid=<subscriptionid>\n"
+              f"&resourcegroup=<resourcegroup>\n"
+              f"&cosmosdb=<cosmosdbname>\n"
+              f"&cosmosdbkey=[ primary | secondary ]\n"
+              f"&keyvaultname=<keyvaultname>\n")
 
     SUBSCRIPTION_ID = req.params.get('subscriptionid')
 
@@ -32,14 +41,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             subscription_id=SUBSCRIPTION_ID
         )
     except ValueError:
+        logging.error(f"Subscription not found or not defined")
         return func.HttpResponse(f"Subscription not found or not defined \n\n"
-                                 f"Syntax:\n"
-                                 f"-------\n"
-                                 f"?cosmosdb=<cosmosdbname>\n"
-                                 f"&resourcegroup=<resourcegroup>\n"
-                                 f"&subscriptionid=<subscriptionid>\n"
-                                 f"&cosmosdbkey=[ primary | secondary ]\n"
-                                 f"&keyvaultname=<keyvaultname>\n",
+                                 f"{syntax}",
                                  status_code=404)
 
     COSMOSDBKEY = req.params.get('cosmosdbkey')
@@ -54,14 +58,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             COSMOSDBKEY = req_body.get('cosmosdbkey')
 
     if COSMOSDBKEY not in COSMOSDBVALUES:
-        return func.HttpResponse(f"CosmosDB Key not found or not defined \n\n"
-                                 f"Syntax:\n"
-                                 f"-------\n"
-                                 f"?cosmosdb=<cosmosdbname>\n"
-                                 f"&resourcegroup=<resourcegroup>\n"
-                                 f"&subscriptionid=<subscriptionid>\n"
-                                 f"&cosmosdbkey=[ primary | secondary ]\n"
-                                 f"&keyvaultname=<keyvaultname>\n",
+        logging.error(f"CosmosDB not found or not defined")
+        return func.HttpResponse(f"CosmosDB not found or not defined \n\n"
+                                 f"{syntax}",
                                  status_code=404)
 
     KEYVAULT_NAME = req.params.get('keyvaultname')
@@ -85,14 +84,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         keyvault_client.set_secret('dummy', 'dummy')
 
     except (NameError, ValueError, ServiceRequestError, ResourceNotFoundError):
+        logging.error(f"KeyVault not found or not defined")
         return func.HttpResponse(f"KeyVault not found or not defined \n\n"
-                                 f"Syntax:\n"
-                                 f"-------\n"
-                                 f"?cosmosdb=<cosmosdbname>\n"
-                                 f"&resourcegroup=<resourcegroup>\n"
-                                 f"&subscriptionid=<subscriptionid>\n"
-                                 f"&cosmosdbkey=[ primary | secondary ]\n"
-                                 f"&keyvaultname=<keyvaultname>\n",
+                                 f"{syntax}",
                                  status_code=404)
 
     DATABASE_ACCOUNT = req.params.get('cosmosdb')
@@ -131,23 +125,26 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     eval(f"database_account_keys.{COSMOSDBKEY}_master_key")
                 )
 
+                logging.info(
+                    f"{COSMOSDBKEY.title()} Key for Database account {DATABASE_ACCOUNT} regenerated.")
                 return func.HttpResponse(f"{COSMOSDBKEY.title()} Key for Database account {DATABASE_ACCOUNT} regenerated.", status_code=200)
 
         except ResourceNotFoundError:
+            logging.error(f"Database account {DATABASE_ACCOUNT} not found.")
             return func.HttpResponse(f"Database {DATABASE_ACCOUNT} not found.", status_code=404)
+
         except HttpResponseError:
+            logging.error(f"Authorization Failed")
             return func.HttpResponse(f"Autorization Failed", status_code=500)
+
         except Exception as e:
+            logging.error(f"{e}")
             return func.HttpResponse(f"{e}", status_code=500)
     else:
+        logging.info(
+            f"CosmosDB and/or Resource Group Name not found or not defined")
         return func.HttpResponse(
-            f"Missing CosmosDB and/or Resource Group Name \n\n"
-            f"Syntax:\n"
-            f"-------\n"
-            f"?cosmosdb=<cosmosdbname>\n"
-            f"&resourcegroup=<resourcegroup>\n"
-            f"&subscriptionid=<subscriptionid>\n"
-            f"&cosmosdbkey=[ primary | secondary ]\n"
-            f"&keyvaultname=<keyvaultname>\n",
+            f"CosmosDB and/or Resource Group Name not found or not defined \n\n"
+            f"{syntax}",
             status_code=200
         )
