@@ -2,8 +2,10 @@ import logging
 import json
 
 import azure.functions as func
+
 from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
 from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 from azure.mgmt.cosmosdb import CosmosDBManagementClient
 
 
@@ -74,12 +76,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     if DATABASE_ACCOUNT and GROUP_NAME:
         try:
-            # database_account_keys = cosmosdb_client.database_accounts.list_keys(
-            #     GROUP_NAME,
-            #     DATABASE_ACCOUNT
-            # )
-            # return func.HttpResponse(f"{_format(database_account_keys)}")
-
             regenerate_keys = cosmosdb_client.database_accounts.begin_regenerate_key(
                 GROUP_NAME,
                 DATABASE_ACCOUNT,
