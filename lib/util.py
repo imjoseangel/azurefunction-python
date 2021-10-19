@@ -3,6 +3,8 @@
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
+import json
+
 
 def parameters(req, param):
 
@@ -34,3 +36,8 @@ def account(req, param):
             group_name = req_body.get('resourcegroup')
 
     return account, group_name
+
+
+def format(content):
+    return json.dumps(content.serialize(keep_readonly=True), indent=4,
+                      separators=(',', ': '))

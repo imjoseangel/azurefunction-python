@@ -4,10 +4,9 @@
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
-import logging
-import json
-
 import azure.functions as func
+
+import logging
 
 from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
 from azure.identity import DefaultAzureCredential
@@ -15,11 +14,6 @@ from azure.keyvault.secrets import SecretClient
 from azure.mgmt.cosmosdb import CosmosDBManagementClient
 
 from lib.util import parameters, account
-
-
-def _format(content):
-    return json.dumps(content.serialize(keep_readonly=True), indent=4,
-                      separators=(',', ': '))
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
