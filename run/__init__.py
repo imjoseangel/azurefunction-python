@@ -4,7 +4,7 @@
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
-
+import ast
 import logging
 import json
 
@@ -19,6 +19,38 @@ from azure.mgmt.cosmosdb import CosmosDBManagementClient
 def _format(content):
     return json.dumps(content.serialize(keep_readonly=True), indent=4,
                       separators=(',', ': '))
+
+
+def parameters(req, param):
+
+    object_id = req.params.get(param)
+
+    if not object_id or object_id is None:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            object_id = req_body.get(param)
+
+    return object_id
+
+
+def cosmosdb(req):
+
+    database_account = req.params.get('cosmosdb')
+    group_name = req.params.get('resourcegroup')
+
+    if not database_account or not group_name:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            database_account = req_body.get('cosmosdb')
+            group_name = req_body.get('resourcegroup')
+
+    return database_account, group_name
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -41,15 +73,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
               '"keyvaultname": "<keyvaultname>"\n'
               '}')
 
-    subscription_id = req.params.get('subscriptionid')
-
-    if not subscription_id or subscription_id is None:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            subscription_id = req_body.get('subscriptionid')
+    subscription_id = parameters(req, 'subscriptionid')
 
     try:
         cosmosdb_client = CosmosDBManagementClient(
@@ -62,16 +86,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"{syntax}",
                                  status_code=404)
 
-    cosmosdb_key = req.params.get('cosmosdbkey')
+    cosmosdb_key = parameters(req, 'cosmosdbkey')
     cosmosdb_values = ('primary', 'secondary')
-
-    if not cosmosdb_key or cosmosdb_key is None:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            cosmosdb_key = req_body.get('cosmosdbkey')
 
     if cosmosdb_key not in cosmosdb_values:
         logging.error("CosmosDB key not found or not defined")
@@ -79,15 +95,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"{syntax}",
                                  status_code=404)
 
-    keyvault_name = req.params.get('keyvaultname')
-
-    if not keyvault_name or keyvault_name is None:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            keyvault_name = req_body.get('keyvaultname')
+    keyvault_name = parameters(req, 'keyvaultname')
 
     try:
         kv_uri = f"https://{keyvault_name}.vault.azure.net"
@@ -105,17 +113,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"{syntax}",
                                  status_code=404)
 
-    database_account = req.params.get('cosmosdb')
-    group_name = req.params.get('resourcegroup')
-
-    if not database_account or not group_name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            database_account = req_body.get('cosmosdb')
-            group_name = req_body.get('resourcegroup')
+    database_account, group_name = cosmosdb(req)
 
     if database_account and group_name:
         try:
@@ -138,7 +136,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
                 keyvault_client.set_secret(
                     f"{database_account}-{cosmosdb_key}",
-                    eval(f"database_account_keys.{cosmosdb_key}_master_key")
+                    ast.literal_eval(
+                        f"database_account_keys.{cosmosdb_key}_master_key")
                 )
 
                 logging.info(
