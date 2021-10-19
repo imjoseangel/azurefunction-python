@@ -136,7 +136,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
                 keyvault_client.set_secret(
                     f"{database_account}-{cosmosdb_key}",
-                    ast.literal_eval(
+                    eval(
                         f"database_account_keys.{cosmosdb_key}_master_key")
                 )
 
