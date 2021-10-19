@@ -145,8 +145,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                          status_code=200)
 
         except ResourceNotFoundError:
-            logging.error(f"Database account {database_account} not found.")
-            return func.HttpResponse(f"Database {database_account} not found.",
+            logging.error(f"Database {database_account} not found.")
+            return func.HttpResponse(f"Database {database_account} not found "
+                                     f"in subscription {subscription_id}.",
                                      status_code=404)
 
         except HttpResponseError:
