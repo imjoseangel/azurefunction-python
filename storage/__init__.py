@@ -134,7 +134,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
             keyvault_client.set_secret(
                 f"{storage_account}-{storage_key}",
-                eval(f"storage_keys[{storage_key}]")
+                eval(f"storage_keys['{storage_key}']")
             )
 
             logging.info(
