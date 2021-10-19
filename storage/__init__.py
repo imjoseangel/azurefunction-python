@@ -124,8 +124,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 )
             )
 
-            regenerate_keys.wait()
-
             if regenerate_keys.status() == "Succeeded":
 
                 storage_account_keys = storage_client.storage_accounts.list_keys(
