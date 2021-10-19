@@ -86,7 +86,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  status_code=404)
 
     storage_key = parameters(req, 'storagekey')
-    storage_values = ('primary', 'secondary')
+    storage_values = ('key1', 'key2')
 
     if storage_key not in storage_values:
         logging.error("Storage Account key not found or not defined")
@@ -116,11 +116,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     if storage_account and group_name:
         try:
-            regenerate_keys = storage_client.storage_accounts.begin_regenerate_key(
+            regenerate_keys = storage_client.storage_accounts.regenerate_key(
                 group_name,
                 storage_account,
-                storage_client.storage_accounts.models.DatabaseAccountRegenerateKeyParameters(
-                    key_kind=storage_key
+                storage_client.storage_accounts.models.StorageAccountRegenerateKeyParameters(
+                    key_name=storage_key
                 )
             )
 
