@@ -147,16 +147,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                          f"account {database_account} regenerated.",
                                          status_code=200)
 
-        except ResourceNotFoundError:
+        except (ResourceNotFoundError, HttpResponseError):
             logging.error(f"Database {database_account} not found.")
             return func.HttpResponse(f"Database {database_account} not found "
                                      f"in subscription {subscription_id}.",
                                      status_code=404)
-
-        except HttpResponseError:
-            logging.error("Authorization Failed")
-            return func.HttpResponse("Autorization Failed",
-                                     status_code=500)
 
         except Exception as e:
             logging.error(f"{e}")
