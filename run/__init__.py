@@ -1,11 +1,16 @@
+# -*- coding: utf-8 -*-
+# pylint: disable=W0123,W1203,W0703,R1710,W0612
+
+from __future__ import (division, absolute_import, print_function,
+                        unicode_literals)
+
+
 import logging
 import json
 
 import azure.functions as func
 
 from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
-from azure.core.exceptions import ServiceRequestError
-from azure.core.exceptions import ClientAuthenticationError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.mgmt.cosmosdb import CosmosDBManagementClient
@@ -20,21 +25,21 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     logging.info('Python HTTP trigger function processed a request.')
 
-    syntax = (f"Syntax:\n"
-              f"-------\n\n"
-              f"?cosmosdb=<cosmosdbname>\n"
-              f"&resourcegroup=<resourcegroup>\n"
-              f"&subscriptionid=<subscriptionid>\n"
-              f"&cosmosdbkey=[ primary | secondary ]\n"
-              f"&keyvaultname=<keyvaultname>\n\n"
-              f"OR with BODY POST:\n\n"
-              f'{{\n'
-              f'"cosmosdb": "<cosmosdbname>",\n'
-              f'"resourcegroup": "<resourcegroup>",\n'
-              f'"subscriptionid": "<subscriptionid>",\n'
-              f'"cosmosdbkey": "<primary | secondary>",\n'
-              f'"keyvaultname": "<keyvaultname>"\n'
-              f'}}')
+    syntax = ("Syntax:\n"
+              "-------\n\n"
+              "?cosmosdb=<cosmosdbname>\n"
+              "&resourcegroup=<resourcegroup>\n"
+              "&subscriptionid=<subscriptionid>\n"
+              "&cosmosdbkey=[ primary | secondary ]\n"
+              "&keyvaultname=<keyvaultname>\n\n"
+              "OR with BODY POST:\n\n"
+              '{\n'
+              '"cosmosdb": "<cosmosdbname>",\n'
+              '"resourcegroup": "<resourcegroup>",\n'
+              '"subscriptionid": "<subscriptionid>",\n'
+              '"cosmosdbkey": "<primary | secondary>",\n'
+              '"keyvaultname": "<keyvaultname>"\n'
+              '}')
 
     subscription_id = req.params.get('subscriptionid')
 
@@ -52,8 +57,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             subscription_id=subscription_id
         )
     except ValueError:
-        logging.error(f"Subscription not found or not defined")
-        return func.HttpResponse(f"Subscription not found or not defined \n\n"
+        logging.error("Subscription not found or not defined")
+        return func.HttpResponse("Subscription not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
 
@@ -69,8 +74,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             cosmosdb_key = req_body.get('cosmosdbkey')
 
     if cosmosdb_key not in cosmosdb_values:
-        logging.error(f"CosmosDB key not found or not defined")
-        return func.HttpResponse(f"CosmosDB key not found or not defined \n\n"
+        logging.error("CosmosDB key not found or not defined")
+        return func.HttpResponse("CosmosDB key not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
 
@@ -94,10 +99,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         keyvault_client.set_secret('dummy', 'dummy')
 
-    except (NameError, ValueError, ServiceRequestError, ResourceNotFoundError,
-            ClientAuthenticationError):
-        logging.error(f"KeyVault name not found or not defined")
-        return func.HttpResponse(f"KeyVault name not found or not defined \n\n"
+    except Exception:
+        logging.error("KeyVault name not found or not defined")
+        return func.HttpResponse("KeyVault name not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
 
@@ -151,8 +155,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                      status_code=404)
 
         except HttpResponseError:
-            logging.error(f"Authorization Failed")
-            return func.HttpResponse(f"Autorization Failed",
+            logging.error("Authorization Failed")
+            return func.HttpResponse("Autorization Failed",
                                      status_code=500)
 
         except Exception as e:
@@ -161,9 +165,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                      status_code=500)
     else:
         logging.info(
-            f"CosmosDB and/or Resource Group Name not found or not defined")
+            "CosmosDB and/or Resource Group Name not found or not defined")
         return func.HttpResponse(
-            f"CosmosDB and/or Resource Group Name not found or not defined \n\n"
+            "CosmosDB and/or Resource Group Name not found or not defined \n\n"
             f"{syntax}",
             status_code=200
         )
