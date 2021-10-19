@@ -1,5 +1,7 @@
 {
-    "cosmosdb": "cosmosdbname",
-    "group": "groupname",
-    "subscriptionid": "subscriptionid"
+    "cosmosdb": "cosmosdb",
+    "resourcegroup": "rsg",
+    "subscriptionid": "subscriptionid",
+    "cosmosdbkey": "primary",
+    "keyvaultname": "keyvault"
 }
