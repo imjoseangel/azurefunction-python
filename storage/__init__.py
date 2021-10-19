@@ -35,21 +35,21 @@ def parameters(req, param):
     return object_id
 
 
-def storage(req):
+def account(req, param):
 
-    storage_account = req.params.get('storage')
+    account = req.params.get(param)
     group_name = req.params.get('resourcegroup')
 
-    if not storage_account or not group_name:
+    if not account or not group_name:
         try:
             req_body = req.get_json()
         except ValueError:
             pass
         else:
-            storage_account = req_body.get('storage')
+            account = req_body.get(param)
             group_name = req_body.get('resourcegroup')
 
-    return storage_account, group_name
+    return account, group_name
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -94,7 +94,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"{syntax}",
                                  status_code=404)
 
-    keyvault_name = parameters(req, 'keyvaultname')
+    keyvault_name = parameters(req, param='keyvaultname')
 
     try:
         kv_uri = f"https://{keyvault_name}.vault.azure.net"
@@ -112,7 +112,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"{syntax}",
                                  status_code=404)
 
-    storage_account, group_name = storage(req)
+    storage_account, group_name = account(req, param='storage')
 
     if storage_account and group_name:
         try:
