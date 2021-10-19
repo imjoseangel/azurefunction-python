@@ -116,7 +116,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     if storage_account and group_name:
         try:
-            regenerate_keys = storage_client.storage_accounts.regenerate_key(
+            storage_client.storage_accounts.regenerate_key(
                 group_name,
                 storage_account,
                 storage_client.storage_accounts.models.StorageAccountRegenerateKeyParameters(
@@ -124,29 +124,29 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 )
             )
 
-            if regenerate_keys.status() == "Succeeded":
+            storage_account_keys = storage_client.storage_accounts.list_keys(
+                group_name,
+                storage_account
+            )
 
-                storage_account_keys = storage_client.storage_accounts.list_keys(
-                    group_name,
-                    storage_account
-                )
+            storage_keys = {
+                key.key_name: key.value for key in storage_account_keys.keys}
 
-                keyvault_client.set_secret(
-                    f"{storage_account}-{storage_key}",
-                    eval(
-                        f"storage_account_keys.{storage_key}_master_key")
-                )
+            keyvault_client.set_secret(
+                f"{storage_account}-{storage_key}",
+                eval(f"storage_keys[{storage_key}]")
+            )
 
-                logging.info(
-                    f"{storage_key.title()} Key for Database account "
-                    f"{storage_account} regenerated.")
-                return func.HttpResponse(f"{storage_key.title()} Key for Database "
-                                         f"account {storage_account} regenerated.",
-                                         status_code=200)
+            logging.info(
+                f"{storage_key.title()} Key for Storage account "
+                f"{storage_account} regenerated.")
+            return func.HttpResponse(f"{storage_key.title()} Key for Storage "
+                                     f"account {storage_account} regenerated.",
+                                     status_code=200)
 
         except (ResourceNotFoundError, HttpResponseError):
-            logging.error(f"Database {storage_account} not found.")
-            return func.HttpResponse(f"Database {storage_account} not found "
+            logging.error(f"Storage {storage_account} not found.")
+            return func.HttpResponse(f"Storage {storage_account} not found "
                                      f"in subscription {subscription_id}.",
                                      status_code=404)
 
