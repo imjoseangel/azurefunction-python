@@ -12,7 +12,7 @@ import azure.functions as func
 from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-from azure.mgmt.cosmosdb import CosmosDBManagementClient
+from azure.mgmt.storage import StorageManagementClient
 
 
 def _format(content):
@@ -35,21 +35,21 @@ def parameters(req, param):
     return object_id
 
 
-def cosmosdb(req):
+def storage(req):
 
-    database_account = req.params.get('cosmosdb')
+    storage_account = req.params.get('storage')
     group_name = req.params.get('resourcegroup')
 
-    if not database_account or not group_name:
+    if not storage_account or not group_name:
         try:
             req_body = req.get_json()
         except ValueError:
             pass
         else:
-            database_account = req_body.get('cosmosdb')
+            storage_account = req_body.get('storage')
             group_name = req_body.get('resourcegroup')
 
-    return database_account, group_name
+    return storage_account, group_name
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -58,24 +58,24 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     syntax = ("Syntax:\n"
               "-------\n\n"
-              "?cosmosdb=<cosmosdbname>\n"
+              "?storage=<storagename>\n"
               "&resourcegroup=<resourcegroup>\n"
               "&subscriptionid=<subscriptionid>\n"
-              "&cosmosdbkey=[ primary | secondary ]\n"
+              "&storagekey=[ primary | secondary ]\n"
               "&keyvaultname=<keyvaultname>\n\n"
               "OR with BODY POST:\n\n"
               '{\n'
-              '"cosmosdb": "<cosmosdbname>",\n'
+              '"storage": "<storagename>",\n'
               '"resourcegroup": "<resourcegroup>",\n'
               '"subscriptionid": "<subscriptionid>",\n'
-              '"cosmosdbkey": "<primary | secondary>",\n'
+              '"storagekey": "<primary | secondary>",\n'
               '"keyvaultname": "<keyvaultname>"\n'
               '}')
 
     subscription_id = parameters(req, 'subscriptionid')
 
     try:
-        cosmosdb_client = CosmosDBManagementClient(
+        storage_client = StorageManagementClient(
             credential=DefaultAzureCredential(),
             subscription_id=subscription_id
         )
@@ -85,12 +85,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"{syntax}",
                                  status_code=404)
 
-    cosmosdb_key = parameters(req, 'cosmosdbkey')
-    cosmosdb_values = ('primary', 'secondary')
+    storage_key = parameters(req, 'storagekey')
+    storage_values = ('primary', 'secondary')
 
-    if cosmosdb_key not in cosmosdb_values:
-        logging.error("CosmosDB key not found or not defined")
-        return func.HttpResponse("CosmosDB key not found or not defined \n\n"
+    if storage_key not in storage_values:
+        logging.error("Storage Account key not found or not defined")
+        return func.HttpResponse("Storage Account key not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
 
@@ -112,15 +112,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                  f"{syntax}",
                                  status_code=404)
 
-    database_account, group_name = cosmosdb(req)
+    storage_account, group_name = storage(req)
 
-    if database_account and group_name:
+    if storage_account and group_name:
         try:
-            regenerate_keys = cosmosdb_client.database_accounts.begin_regenerate_key(
+            regenerate_keys = storage_client.storage_accounts.begin_regenerate_key(
                 group_name,
-                database_account,
-                cosmosdb_client.database_accounts.models.DatabaseAccountRegenerateKeyParameters(
-                    key_kind=cosmosdb_key
+                storage_account,
+                storage_client.storage_accounts.models.DatabaseAccountRegenerateKeyParameters(
+                    key_kind=storage_key
                 )
             )
 
@@ -128,27 +128,27 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
             if regenerate_keys.status() == "Succeeded":
 
-                database_account_keys = cosmosdb_client.database_accounts.list_keys(
+                storage_account_keys = storage_client.storage_accounts.list_keys(
                     group_name,
-                    database_account
+                    storage_account
                 )
 
                 keyvault_client.set_secret(
-                    f"{database_account}-{cosmosdb_key}",
+                    f"{storage_account}-{storage_key}",
                     eval(
-                        f"database_account_keys.{cosmosdb_key}_master_key")
+                        f"storage_account_keys.{storage_key}_master_key")
                 )
 
                 logging.info(
-                    f"{cosmosdb_key.title()} Key for Database account "
-                    f"{database_account} regenerated.")
-                return func.HttpResponse(f"{cosmosdb_key.title()} Key for Database "
-                                         f"account {database_account} regenerated.",
+                    f"{storage_key.title()} Key for Database account "
+                    f"{storage_account} regenerated.")
+                return func.HttpResponse(f"{storage_key.title()} Key for Database "
+                                         f"account {storage_account} regenerated.",
                                          status_code=200)
 
         except (ResourceNotFoundError, HttpResponseError):
-            logging.error(f"Database {database_account} not found.")
-            return func.HttpResponse(f"Database {database_account} not found "
+            logging.error(f"Database {storage_account} not found.")
+            return func.HttpResponse(f"Database {storage_account} not found "
                                      f"in subscription {subscription_id}.",
                                      status_code=404)
 
@@ -158,9 +158,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                      status_code=500)
     else:
         logging.info(
-            "CosmosDB and/or Resource Group Name not found or not defined")
+            "Storage Account and/or Resource Group Name not found or not defined")
         return func.HttpResponse(
-            "CosmosDB and/or Resource Group Name not found or not defined \n\n"
+            "Storage Account and/or Resource Group Name not found or not defined \n\n"
             f"{syntax}",
             status_code=200
         )
