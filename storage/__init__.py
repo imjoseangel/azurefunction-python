@@ -119,9 +119,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             storage_client.storage_accounts.regenerate_key(
                 group_name,
                 storage_account,
-                storage_client.storage_accounts.models.StorageAccountRegenerateKeyParameters(
-                    key_name=storage_key
-                )
+                storage_key
             )
 
             storage_account_keys = storage_client.storage_accounts.list_keys(
