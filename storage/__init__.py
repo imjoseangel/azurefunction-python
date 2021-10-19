@@ -61,14 +61,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
               "?storage=<storagename>\n"
               "&resourcegroup=<resourcegroup>\n"
               "&subscriptionid=<subscriptionid>\n"
-              "&storagekey=[ primary | secondary ]\n"
+              "&storagekey=[ key1 | key2 ]\n"
               "&keyvaultname=<keyvaultname>\n\n"
               "OR with BODY POST:\n\n"
               '{\n'
               '"storage": "<storagename>",\n'
               '"resourcegroup": "<resourcegroup>",\n'
               '"subscriptionid": "<subscriptionid>",\n'
-              '"storagekey": "<primary | secondary>",\n'
+              '"storagekey": "<key1 | key2>",\n'
               '"keyvaultname": "<keyvaultname>"\n'
               '}')
 
