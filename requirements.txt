@@ -8,3 +8,4 @@ azure-mgmt-resource
 azure-mgmt-storage
 azure-identity
 azure-keyvault-secrets
+opencensus-ext-azure
