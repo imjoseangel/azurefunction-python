@@ -16,7 +16,7 @@ from opencensus.ext.azure.log_exporter import AzureLogHandler
 
 logger = logging.getLogger(__name__)
 logger.addHandler(AzureLogHandler(
-    connection_string='InstrumentationKey=00000000-0000-0000-0000-000000000000')
+    connection_string='InstrumentationKey=00a0000a-0000-0c00-bb0f-ba0f00000f00;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/')
 )
 
 
