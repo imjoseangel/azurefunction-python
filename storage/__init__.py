@@ -48,7 +48,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             subscription_id=subscription_id
         )
     except ValueError:
-        logger.error("Subscription not found or not defined")
+        logger.exception("Subscription not found or not defined")
         return func.HttpResponse("Subscription not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
@@ -75,7 +75,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         keyvault_client.set_secret('dummy', 'dummy')
 
     except Exception:
-        logger.error("KeyVault name not found or not defined")
+        logger.exception("KeyVault name not found or not defined")
         return func.HttpResponse("KeyVault name not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
@@ -113,13 +113,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                      status_code=200)
 
         except (ResourceNotFoundError, HttpResponseError):
-            logger.error(f"Storage {storage_account} not found.")
+            logger.exception(f"Storage {storage_account} not found.")
             return func.HttpResponse(f"Storage {storage_account} not found "
                                      f"in subscription {subscription_id}.",
                                      status_code=404)
 
         except Exception as e:
-            logger.error(f"{e}")
+            logger.exception(f"{e}")
             return func.HttpResponse(f"{e}",
                                      status_code=500)
     else:
