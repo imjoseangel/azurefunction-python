@@ -3,22 +3,26 @@
 
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
+from lib.util import parameters, account
+from azure.mgmt.cosmosdb import CosmosDBManagementClient
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
+from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
 
 import azure.functions as func
 
 import logging
+from opencensus.ext.azure.log_exporter import AzureLogHandler
 
-from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
-from azure.mgmt.cosmosdb import CosmosDBManagementClient
-
-from lib.util import parameters, account
+logger = logging.getLogger(__name__)
+logger.addHandler(AzureLogHandler(
+    connection_string='InstrumentationKey=00000000-0000-0000-0000-000000000000')
+)
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
 
-    logging.info('Python HTTP trigger function processed a request.')
+    logger.info('Python HTTP trigger function processed a request.')
 
     syntax = ("Syntax:\n"
               "-------\n\n"
@@ -44,7 +48,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             subscription_id=subscription_id
         )
     except ValueError:
-        logging.error("Subscription not found or not defined")
+        logger.error("Subscription not found or not defined")
         return func.HttpResponse("Subscription not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
@@ -53,7 +57,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     cosmosdb_values = ('primary', 'secondary')
 
     if cosmosdb_key not in cosmosdb_values:
-        logging.error("CosmosDB key not found or not defined")
+        logger.error("CosmosDB key not found or not defined")
         return func.HttpResponse("CosmosDB key not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
@@ -71,7 +75,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         keyvault_client.set_secret('dummy', 'dummy')
 
     except Exception:
-        logging.error("KeyVault name not found or not defined")
+        logger.error("KeyVault name not found or not defined")
         return func.HttpResponse("KeyVault name not found or not defined \n\n"
                                  f"{syntax}",
                                  status_code=404)
@@ -103,7 +107,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                         f"database_account_keys.{cosmosdb_key}_master_key")
                 )
 
-                logging.info(
+                logger.info(
                     f"{cosmosdb_key.title()} Key for Database account "
                     f"{database_account} regenerated.")
                 return func.HttpResponse(f"{cosmosdb_key.title()} Key for Database "
@@ -111,17 +115,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                                          status_code=200)
 
         except (ResourceNotFoundError, HttpResponseError):
-            logging.error(f"Database {database_account} not found.")
+            logger.error(f"Database {database_account} not found.")
             return func.HttpResponse(f"Database {database_account} not found "
                                      f"in subscription {subscription_id}.",
                                      status_code=404)
 
         except Exception as e:
-            logging.error(f"{e}")
+            logger.error(f"{e}")
             return func.HttpResponse(f"{e}",
                                      status_code=500)
     else:
-        logging.info(
+        logger.info(
             "CosmosDB and/or Resource Group Name not found or not defined")
         return func.HttpResponse(
             "CosmosDB and/or Resource Group Name not found or not defined \n\n"
