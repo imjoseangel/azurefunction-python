@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azure-functions/python:3.0-python3.8
+FROM mcr.microsoft.com/azure-functions/python:4-python3.11
 
 ENV host:logger:consoleLoggingMode=always
 
